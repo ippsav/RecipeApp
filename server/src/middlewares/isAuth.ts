@@ -3,6 +3,7 @@ import { MiddlewareFn } from "type-graphql";
 import { authenticateAccessToken } from "../utils";
 
 export const isAuth: MiddlewareFn<MyContext> = ({ context }, next) => {
+  console.log("entered");
   const authorization = context.req.headers["authorization"];
   if (!authorization) {
     throw new Error("not authenticated");

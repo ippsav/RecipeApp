@@ -32,5 +32,9 @@ export const authenticateRefreshToken = (token: string): IPayload => {
 };
 
 export const sendRefreshToken = (res: Response, token: string) => {
-  res.cookie("jid", token, { httpOnly: true, path: "/refresh_token" });
+  res.cookie("jid", token, {
+    httpOnly: true,
+    path: "/refresh_token",
+    sameSite: "lax",
+  });
 };

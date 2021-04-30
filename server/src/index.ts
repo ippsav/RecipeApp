@@ -1,6 +1,6 @@
 import "dotenv/config";
 import "reflect-metadata";
-import express from "express";
+import express, { json } from "express";
 import { prisma } from "./client";
 import { buildSchema } from "type-graphql";
 import { ApolloServer } from "apollo-server-express";
@@ -14,14 +14,17 @@ import { authenticateRefreshToken, generateAccessToken } from "./utils";
 const main = async () => {
   const app = express();
   app.use(cookieParser());
+  app.use(json());
   const { PORT } = process.env;
   app.use(
     cors({
       credentials: true,
+      origin: "http://localhost:3000",
     })
   );
   app.post("/refresh_token", async (req, res) => {
     const token = req.cookies.jid;
+    console.log("entered");
     if (!token) {
       return { ok: true, accessToken: "" };
     }
@@ -31,14 +34,20 @@ const main = async () => {
     } catch (error) {
       return res.send({ ok: false, accessToken: "" });
     }
-    const user = await prisma.user.findUnique({
-      where: {
-        id: payload.userId,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: {
+          id: payload.userId,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
     if (!user) {
       return res.send({ ok: false, accessToken: "" });
     }
+    console.log("end");
     return res.send({
       ok: true,
       accessToken: generateAccessToken(user),

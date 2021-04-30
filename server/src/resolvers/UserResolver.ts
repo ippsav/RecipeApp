@@ -65,6 +65,7 @@ export class UserResolver {
   @Query(() => User, { nullable: true })
   @UseMiddleware(isAuth)
   async me(@Ctx() { prisma, payload }: MyContext): Promise<User | null> {
+    console.log("entered");
     const user = await prisma.user.findUnique({
       where: {
         id: payload?.userId,
@@ -229,5 +230,16 @@ export class UserResolver {
         token: generateAccessToken(user),
       },
     };
+  }
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { res }: MyContext): Promise<Boolean> {
+    return new Promise((resolve) => {
+      try {
+        res.clearCookie("jid");
+        resolve(true);
+      } catch (err) {
+        resolve(false);
+      }
+    });
   }
 }
