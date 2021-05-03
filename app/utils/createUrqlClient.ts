@@ -10,6 +10,15 @@ import { devtoolsExchange } from "@urql/devtools";
 import { cacheExchange } from "@urql/exchange-graphcache";
 import { useStore } from "../store";
 
+
+const refreshToken =async () =>{
+        const response = await fetch("http://localhost:7001/refresh_token", {
+          credentials: "include" as const,
+          method: "POST",
+        });
+        return (await response.json()).accessToken;
+}
+
 export const createUrqlClient = (ssrExchange: any): ClientOptions => ({
   url: "http://localhost:7001/graphql",
   fetchOptions: {
@@ -41,10 +50,6 @@ export const createUrqlClient = (ssrExchange: any): ClientOptions => ({
           },
         });
       },
-      willAuthError: ({ authState }) => {
-        if (!authState) return true;
-        return false;
-      },
       didAuthError: ({ error }) => {
         return error.graphQLErrors.some(
           (e) => e.extensions?.code === "FORBIDDEN"
@@ -52,23 +57,15 @@ export const createUrqlClient = (ssrExchange: any): ClientOptions => ({
       },
       getAuth: async ({ authState }) => {
         if (!authState) {
-          const token = useStore.getState().token;
-          console.log(token);
+          const token = useStore.getState().token || await refreshToken();
           if (token) {
             return { token };
           }
           return null;
         }
-        const response = await fetch("http://localhost:7001/refresh_token", {
-          credentials: "include" as const,
-          method: "POST",
-        });
-        const data = await response.json();
-        console.log(data);
-        if (data.token) {
-          return {
-            token: data.token,
-          };
+        const token = await refreshToken();
+        if(token){
+          return {token}
         }
         return null;
       },

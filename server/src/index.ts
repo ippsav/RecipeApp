@@ -23,8 +23,8 @@ const main = async () => {
     })
   );
   app.post("/refresh_token", async (req, res) => {
+    console.log("start");
     const token = req.cookies.jid;
-    console.log("entered");
     if (!token) {
       return { ok: true, accessToken: "" };
     }
